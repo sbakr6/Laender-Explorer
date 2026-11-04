@@ -36,6 +36,3 @@ Mit dieser API kann ich Informationen über verschiedene Länder abrufen.
 Die API-Abfrage und die Verarbeitung der Daten wurden im Rahmen des Unterrichts erarbeitet.
 
 Für die grafische Benutzeroberfläche und die README-Datei wurde KI-Unterstützung verwendet.
-
-## Autor
-Schulprojekt im Fach FSST – HTL Anichstraße.
