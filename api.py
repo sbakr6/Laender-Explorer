@@ -2,14 +2,6 @@ import requests  # Ich lade die Bibliothek requests
 
 def land_suchen(land):  # Ich erstelle eine Funktion für die Ländersuche
 
-    if land.upper() == "KURDISTAN":  # Ich prüfe, ob Kurdistan eingegeben wurde
-        return {
-            "name": "Kurdistan",
-            "capital": "Amed (Diyarbekir)",
-            "population": "60 Millionen"
-        }  # Ich gebe meine eigenen Angaben zurück
-
-    else:  # Bei anderen Ländern benutze ich die API
         url = "https://countries.dev/name/" + land  # Ich erstelle die Adresse mit dem Ländernamen
 
         try:  # Ich versuche, die API aufzurufen
