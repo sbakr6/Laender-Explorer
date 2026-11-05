@@ -1,5 +1,8 @@
 
 import tkinter as tk
+import requests
+from io import BytesIO
+from PIL import Image, ImageTk
 
 
 class LaenderExplorer:
@@ -8,8 +11,8 @@ class LaenderExplorer:
         self.suche = suche
 
         self.fenster.title("Länder Explorer")
-        self.fenster.geometry("850x600")
-        self.fenster.minsize(650, 520)
+        self.fenster.geometry("850x650")
+        self.fenster.minsize(650, 550)
         self.fenster.configure(bg="#0B1120")
 
         # Farben für meine Oberfläche
@@ -49,7 +52,13 @@ class LaenderExplorer:
             relief="flat",
             bd=0
         )
-        self.eingabe.pack(side="left", fill="x", expand=True, ipady=14, ipadx=15)
+        self.eingabe.pack(
+            side="left",
+            fill="x",
+            expand=True,
+            ipady=14,
+            ipadx=15
+        )
 
         tk.Button(
             suchbereich,
@@ -66,7 +75,10 @@ class LaenderExplorer:
             command=self.land_suchen
         ).pack(side="left", padx=(12, 0))
 
-        self.fenster.bind("<Return>", lambda event: self.land_suchen())
+        self.fenster.bind(
+            "<Return>",
+            lambda event: self.land_suchen()
+        )
 
         # Bereich für Länderinformationen
         self.infobereich = tk.Frame(
@@ -75,7 +87,12 @@ class LaenderExplorer:
             padx=35,
             pady=30
         )
-        self.infobereich.pack(fill="both", expand=True, padx=65, pady=30)
+        self.infobereich.pack(
+            fill="both",
+            expand=True,
+            padx=65,
+            pady=30
+        )
 
         tk.Label(
             self.infobereich,
@@ -88,6 +105,14 @@ class LaenderExplorer:
         self.name = self.info_zeile("Land")
         self.hauptstadt = self.info_zeile("Hauptstadt")
         self.einwohner = self.info_zeile("Einwohner")
+
+        # Bereich für die Flagge
+        self.flagge = tk.Label(
+            self.infobereich,
+            bg=self.karte
+        )
+        self.flagge.pack(pady=10)
+        self.flaggen_bild = None
 
         # Meldungen unten
         self.status = tk.Label(
@@ -102,7 +127,10 @@ class LaenderExplorer:
         self.eingabe.focus_set()
 
     def info_zeile(self, titel):
-        bereich = tk.Frame(self.infobereich, bg=self.karte)
+        bereich = tk.Frame(
+            self.infobereich,
+            bg=self.karte
+        )
         bereich.pack(fill="x", pady=12)
 
         tk.Label(
@@ -133,7 +161,35 @@ class LaenderExplorer:
         self.name.config(text=str(daten["name"]))
         self.hauptstadt.config(text=str(daten["capital"]))
         self.einwohner.config(text=str(daten["population"]))
-        self.status.config(text="Land erfolgreich gefunden!", fg="#4ADE80")
+
+        # Ich entferne zuerst die alte Flagge
+        self.flagge.config(image="")
+        self.flaggen_bild = None
+
+        # Ich lade die Flagge von der API
+        if daten.get("flag"):
+            try:
+                antwort = requests.get(daten["flag"], timeout=10)
+                antwort.raise_for_status()
+
+                bild = Image.open(BytesIO(antwort.content))
+                bild = bild.convert("RGBA")
+                bild.thumbnail((120, 80))
+
+                self.flaggen_bild = ImageTk.PhotoImage(bild)
+                self.flagge.config(image=self.flaggen_bild)
+
+            except (requests.RequestException, OSError):
+                self.status.config(
+                    text="Land gefunden, aber Flagge konnte nicht geladen werden.",
+                    fg="#F87171"
+                )
+                return
+
+        self.status.config(
+            text="Land erfolgreich gefunden!",
+            fg="#4ADE80"
+        )
 
     def land_suchen(self):
         land = self.eingabe.get().strip()
@@ -147,7 +203,7 @@ class LaenderExplorer:
 
         if self.suche is None:
             self.status.config(
-                text="Die GUI ist fertig. Die API wird als Nächstes verbunden.",
+                text="Die API ist nicht verbunden.",
                 fg=self.grau
             )
             return
@@ -164,7 +220,8 @@ class LaenderExplorer:
 
             self.daten_anzeigen(daten)
 
-        except Exception:
+        except Exception as fehler:
+            print("Fehler:", fehler)
             self.status.config(
                 text="Bei der Suche ist ein Fehler aufgetreten.",
                 fg="#F87171"
